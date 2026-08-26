@@ -192,10 +192,10 @@
             minZoom: 2 // Prevents zooming out too far
         }).setView([30, 10], 2);
 
-        // Load a dark-themed map layer from CartoDB to match our SOC UI
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: 'Map data &copy; OpenStreetMap contributors',
-            maxZoom: 18
+        // Initialize the dark theme map tile layer (Free, no API key required)
+        L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+            maxZoom: 20,
+            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
         }).addTo(map);
 
         // Function to process the parsed CSV data and render the dashboard
