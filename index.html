@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Hole - Global SSH Threat Monitor</title>
+    
+    <!-- Import Google Fonts: Inter for a clean, classic tech UI -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Load Leaflet CSS for the interactive map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        /* Reset default browser margins */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        /* Main background and font styling */
+        body {
+            background-color: #12151A; /* Dark charcoal/grey base */
+            color: #A0AABF; /* Soft grey text for readability */
+            font-family: 'Inter', sans-serif; /* Upgraded classic font */
+            padding: 20px;
+        }
+
+        /* Define global CSS variables for easy color management */
+        :root {
+            --accent-color: #00E5FF; /* Neon Cyan */
+            --panel-bg: #1B2028; /* Slightly lighter grey for panels */
+            --border-color: #2A313C;
+        }
+
+        /* Header layout (Top left and center-ish) */
+        header {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        header h1 {
+            color: var(--accent-color);
+            margin-right: 20px;
+            font-size: 2.2rem;
+            font-weight: 600; /* Bold weight for the main title */
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.3); /* Glow effect */
+        }
+        
+        header h2 {
+            color: #FFFFFF;
+            font-size: 1.2rem;
+            font-weight: 300; /* Lighter weight for the subtitle */
+        }
+
+        /* The main grid layout holding the panels */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 250px 1fr 250px; /* Left column, flexible center, right column */
+            grid-template-rows: 450px auto; /* Map height, then table height */
+            gap: 20px;
+        }
+
+        /* Universal styling for all dashboard boxes */
+        .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .panel h3 {
+            color: #FFFFFF;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+            font-weight: 400;
+        }
+
+        /* Map container */
+        #map {
+            height: 100%;
+            width: 100%;
+            border-radius: 4px;
+        }
+
+        /* Bottom table panel configuration */
+        .bottom-panel {
+            grid-column: 1 / -1; 
+            /* Let the panel grow naturally with the content, removing internal scroll */
+            height: auto; 
+            margin-bottom: 40px; 
+        }
+
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.9rem; /* Slightly smaller text for data density */
+        }
+        
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            color: var(--accent-color);
+            position: sticky; /* Keeps the headers visible when scrolling down */
+            top: 0;
+            background-color: var(--panel-bg);
+            font-weight: 600;
+        }
+        
+        td {
+            font-weight: 300; /* Clean, light text for the data rows */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>The Hole</h1>
+        <h2>Global SSH Threat Monitor</h2>
+    </header>
+
+    <div class="dashboard">
+        <!-- Left Panel: Top Passwords -->
+        <div class="panel">
+            <h3>Top 10 Passwords</h3>
+            <ul id="top-passwords" style="list-style: none;">
+                <!-- JavaScript will inject data here -->
+            </ul>
+        </div>
+
+        <!-- Center Panel: The Map -->
+        <div class="panel" style="padding: 0;">
+            <div id="map"></div>
+        </div>
+
+        <!-- Right Panel: Recent Attacks -->
+        <div class="panel">
+            <h3>Recent Attacks</h3>
+            <ul id="recent-attacks" style="list-style: none;">
+                <!-- JavaScript will inject data here -->
+            </ul>
+        </div>
+
+        <!-- Bottom Panel: The 500 Logs Table -->
+        <div class="panel bottom-panel">
+            <h3>Attack Log (Last 500)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>IP Address</th>
+                        <th>Username</th>
+                        <th>Password</th>
+                        <th>Location</th>
+                        <th>ISP</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="attack-table-body">
+                    <!-- JavaScript will inject data here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- JavaScript logic -->
+
+    <!-- Import PapaParse (for reading CSV easily) and Leaflet JS (for the map) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Define the geographical boundaries of the world map
+        const bounds = [
+            [-90, -180], // South-West coordinates
+            [90, 180]    // North-East coordinates
+        ];
+
+        // Initialize the Leaflet map with strict boundaries
+        const map = L.map('map', {
+            maxBounds: bounds,
+            maxBoundsViscosity: 1.0, // Prevents bouncing outside the defined limits
+            minZoom: 2 // Prevents zooming out too far
+        }).setView([30, 10], 2);
+
+        // Load a dark-themed map layer from CartoDB to match our SOC UI
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: 'Map data &copy; OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(map);
+
+        // Function to process the parsed CSV data and render the dashboard
+        function renderDashboard(data) {
+            // Reverse the data array so the newest attacks are processed first
+            const attacks = data.reverse();
+            
+            // 1. Render the bottom table (Last 500)
+            const tableBody = document.getElementById('attack-table-body');
+            const recent500 = attacks.slice(0, 500);
+            
+            recent500.forEach(attack => {
+                const tr = document.createElement('tr');
+                
+                // Color-code the status: Red for SUCCESS (breach), Cyan for FAILED
+                const statusColor = attack.Status === 'SUCCESS' ? '#FF4444' : 'var(--accent-color)';
+                
+                tr.innerHTML = `
+                    <td style="color: ${statusColor}; font-weight: 600;">${attack.Status}</td>
+                    <td>${attack.IP}</td>
+                    <td>${attack.Username}</td>
+                    <td>${attack.Password}</td>
+                    <td>${attack.City}, ${attack.Country}</td>
+                    <td>${attack.ISP}</td>
+                    <td>${attack.Timestamp}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            // 2. Render Recent Attacks (Top 10 list on the right)
+            const recentList = document.getElementById('recent-attacks');
+            const top10Recent = recent500.slice(0, 10);
+            
+            top10Recent.forEach(attack => {
+                const li = document.createElement('li');
+                li.style.padding = '12px 0';
+                li.style.borderBottom = '1px solid var(--border-color)';
+                li.innerHTML = `<span style="color: var(--accent-color)">${attack.IP}</span><br>Tried user: <b style="color: #fff;">${attack.Username}</b>`;
+                recentList.appendChild(li);
+            });
+
+            // 3. Calculate and render Top 10 Passwords (Left list)
+            const passCounts = {};
+            attacks.forEach(attack => {
+                if(attack.Password) {
+                    passCounts[attack.Password] = (passCounts[attack.Password] || 0) + 1;
+                }
+            });
+            
+            // Sort passwords by frequency in descending order
+            const sortedPasswords = Object.entries(passCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+                
+            const passList = document.getElementById('top-passwords');
+            sortedPasswords.forEach(([pass, count]) => {
+                const li = document.createElement('li');
+                li.style.padding = '12px 0';
+                li.style.borderBottom = '1px solid var(--border-color)';
+                li.innerHTML = `<b style="color: #fff;">${pass}</b> <span style="float: right; color: var(--accent-color);">${count} hits</span>`;
+                passList.appendChild(li);
+            });
+            
+            // 4. Draw markers on the interactive map
+            attacks.forEach(attack => {
+                // Check if valid coordinates exist (not empty and not "Unknown" or "Error")
+                if (attack.Lat && attack.Lon && attack.Lat !== "Error" && attack.Lat !== "Unknown") {
+                    const lat = parseFloat(attack.Lat);
+                    const lon = parseFloat(attack.Lon);
+                    
+                    // Assign colors: Red for breach, Cyan for failed attempt
+                    const markerColor = attack.Status === 'SUCCESS' ? '#FF4444' : '#00E5FF';
+                    
+                    // Create a circular glowing marker
+                    const marker = L.circleMarker([lat, lon], {
+                        radius: 5,
+                        fillColor: markerColor,
+                        color: markerColor,
+                        weight: 1,
+                        opacity: 0.8,
+                        fillOpacity: 0.5
+                    }).addTo(map);
+                    
+                    // Build the popup content that appears on click
+                    const popupContent = `
+                        <div style="font-family: 'Inter', sans-serif; color: #12151A; line-height: 1.5;">
+                            <strong style="color: ${markerColor};">${attack.Status}</strong><br>
+                            <strong>IP:</strong> ${attack.IP}<br>
+                            <strong>User:</strong> ${attack.Username}<br>
+                            <strong>Password:</strong> ${attack.Password}<br>
+                            <strong>Location:</strong> ${attack.City}, ${attack.Country}
+                        </div>
+                    `;
+                    
+                    // Bind the popup to the marker
+                    marker.bindPopup(popupContent);
+                }
+            });
+        }
+
+        // Fetch and parse the local CSV file using PapaParse
+        Papa.parse('attacks.csv', {
+            download: true,
+            header: true, // Use the first row as object keys
+            skipEmptyLines: true,
+            complete: function(results) {
+                renderDashboard(results.data);
+            },
+            error: function(err) {
+                console.error("Failed to load CSV data:", err);
+            }
+        });
+    </script>
+
+</body>
+</html>
