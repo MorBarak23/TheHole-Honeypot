@@ -87,6 +87,21 @@
             overflow-y: auto;
             padding-right: 5px;
         }
+        /* Custom Dark Scrollbar for the passwords panel */
+        #top-passwords::-webkit-scrollbar {
+            width: 6px;
+        }
+        #top-passwords::-webkit-scrollbar-track {
+            background: var(--panel-bg);
+            border-radius: 4px;
+        }
+        #top-passwords::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        #top-passwords::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color);
+        }
 
         /* Map container */
         #map {

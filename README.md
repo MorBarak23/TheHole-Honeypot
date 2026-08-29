@@ -73,6 +73,18 @@ By analyzing the gathered data, several cybersecurity trends become immediately 
 
 ---
 
+### 📊 Final Research Findings (3-Month Data Collection)
+
+Over a structured 90-day data collection period, the honeypot successfully captured and analyzed **over 50,000 distinct unauthorized access attempts**.
+
+**Core Discoveries:**
+
+- **High-Volume Automated Threats:** The data overwhelmingly points to automated botnets utilizing brute-force credential stuffing, often executing dozens of requests per second from single nodes.
+- **Top Targeted Credentials:** The most frequently attempted combinations relied on factory defaults and weak strings. `123456`, `admin`, and `root` accounted for a massive percentage of all hits, proving that hardcoded or default IoT/server credentials remain the most exploited vulnerability on the public internet.
+- **Global Distribution:** Threat actors are not localized. The interactive map visualizes attacks originating from highly distributed networks across Asia, Europe, and the Americas, highlighting the necessity of strict IP whitelisting and geo-blocking policies.
+
+---
+
 ## 💻 Technology Stack
 
 - **Infrastructure:** AWS EC2 (Ubuntu Linux)
