@@ -87,21 +87,28 @@
             overflow-y: auto;
             padding-right: 5px;
         }
-        /* Custom Dark Scrollbar for the passwords panel */
-        #top-passwords::-webkit-scrollbar {
-            width: 6px;
-        }
-        #top-passwords::-webkit-scrollbar-track {
-            background: var(--panel-bg);
-            border-radius: 4px;
-        }
-        #top-passwords::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 4px;
-        }
-        #top-passwords::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-color);
-        }
+        #top-passwords {
+    /* Enable vertical scroll and add padding to distance text from scrollbar */
+    max-height: 330px;
+    overflow-y: auto;
+    padding-right: 15px;
+    }
+
+    /* Custom Dark Scrollbar with absolute colors */
+    #top-passwords::-webkit-scrollbar {
+        width: 8px;
+    }
+    #top-passwords::-webkit-scrollbar-track {
+        background: #1B2028;
+        border-radius: 4px;
+    }
+    #top-passwords::-webkit-scrollbar-thumb {
+        background: #2A313C;
+        border-radius: 4px;
+    }
+    #top-passwords::-webkit-scrollbar-thumb:hover {
+        background: #00E5FF;
+    }
 
         /* Map container */
         #map {
@@ -222,8 +229,9 @@
 
         // Function to process the parsed CSV data and render the dashboard
         function renderDashboard(data) {
-            // Reverse the data array so the newest attacks are processed first
-            const attacks = data.reverse();
+            // Filter out internal Docker IPs and reverse the array to show newest first
+            const validAttacks = data.filter(attack => attack.IP && !attack.IP.startsWith('172.'));
+            const attacks = validAttacks.reverse();
             
             // 1. Render the bottom table (Last 500)
             const tableBody = document.getElementById('attack-table-body');
