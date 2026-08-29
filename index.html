@@ -81,6 +81,35 @@
             font-weight: 400;
         }
 
+        #top-passwords {
+            /* Enable vertical scroll for the passwords list */
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        #top-passwords {
+    /* Enable vertical scroll and add padding to distance text from scrollbar */
+    max-height: 330px;
+    overflow-y: auto;
+    padding-right: 15px;
+    }
+
+    /* Custom Dark Scrollbar with absolute colors */
+    #top-passwords::-webkit-scrollbar {
+        width: 8px;
+    }
+    #top-passwords::-webkit-scrollbar-track {
+        background: #1B2028;
+        border-radius: 4px;
+    }
+    #top-passwords::-webkit-scrollbar-thumb {
+        background: #2A313C;
+        border-radius: 4px;
+    }
+    #top-passwords::-webkit-scrollbar-thumb:hover {
+        background: #00E5FF;
+    }
+
         /* Map container */
         #map {
             height: 100%;
@@ -193,15 +222,16 @@
         }).setView([30, 10], 2);
 
         // Initialize the CartoDB Dark Matter map tile layer (Free, no API key required)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+            maxZoom: 16
         }).addTo(map);
 
         // Function to process the parsed CSV data and render the dashboard
         function renderDashboard(data) {
-            // Reverse the data array so the newest attacks are processed first
-            const attacks = data.reverse();
+            // Filter out internal Docker IPs and reverse the array to show newest first
+            const validAttacks = data.filter(attack => attack.IP && !attack.IP.startsWith('172.'));
+            const attacks = validAttacks.reverse();
             
             // 1. Render the bottom table (Last 500)
             const tableBody = document.getElementById('attack-table-body');
@@ -259,9 +289,11 @@
                 passList.appendChild(li);
             });
             
-            // 4. Draw markers on the interactive map
-            attacks.forEach(attack => {
-                // Check if valid coordinates exist (not empty and not "Unknown" or "Error")
+            // 4. Draw markers on the interactive map (Limit to latest 1000 to prevent browser crash)
+            const mapAttacks = attacks.slice(0, 1000);
+            
+            mapAttacks.forEach(attack => {
+                // Check if valid coordinates exist
                 if (attack.Lat && attack.Lon && attack.Lat !== "Error" && attack.Lat !== "Unknown") {
                     const lat = parseFloat(attack.Lat);
                     const lon = parseFloat(attack.Lon);
@@ -279,7 +311,7 @@
                         fillOpacity: 0.5
                     }).addTo(map);
                     
-                    // Build the popup content that appears on click
+                    // Build the popup content
                     const popupContent = `
                         <div style="font-family: 'Inter', sans-serif; color: #12151A; line-height: 1.5;">
                             <strong style="color: ${markerColor};">${attack.Status}</strong><br>
@@ -290,7 +322,6 @@
                         </div>
                     `;
                     
-                    // Bind the popup to the marker
                     marker.bindPopup(popupContent);
                 }
             });
