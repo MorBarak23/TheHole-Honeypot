@@ -289,41 +289,51 @@
                 passList.appendChild(li);
             });
             
-            // 4. Draw markers on the interactive map (Limit to latest 1000 to prevent browser crash)
-            const mapAttacks = attacks.slice(0, 1000);
-            
-            mapAttacks.forEach(attack => {
-                // Check if valid coordinates exist
+            // 4. Draw markers on the interactive map (Limit to 1000 UNIQUE IPs)
+            const seenIPs = new Set();
+            const uniqueMapAttacks = [];
+
+            // Filter attacks to find up to 1000 unique IP addresses for the map
+            for (const attack of attacks) {
                 if (attack.Lat && attack.Lon && attack.Lat !== "Error" && attack.Lat !== "Unknown") {
-                    const lat = parseFloat(attack.Lat);
-                    const lon = parseFloat(attack.Lon);
-                    
-                    // Assign colors: Red for breach, Cyan for failed attempt
-                    const markerColor = attack.Status === 'SUCCESS' ? '#FF4444' : '#00E5FF';
-                    
-                    // Create a circular glowing marker
-                    const marker = L.circleMarker([lat, lon], {
-                        radius: 5,
-                        fillColor: markerColor,
-                        color: markerColor,
-                        weight: 1,
-                        opacity: 0.8,
-                        fillOpacity: 0.5
-                    }).addTo(map);
-                    
-                    // Build the popup content
-                    const popupContent = `
-                        <div style="font-family: 'Inter', sans-serif; color: #12151A; line-height: 1.5;">
-                            <strong style="color: ${markerColor};">${attack.Status}</strong><br>
-                            <strong>IP:</strong> ${attack.IP}<br>
-                            <strong>User:</strong> ${attack.Username}<br>
-                            <strong>Password:</strong> ${attack.Password}<br>
-                            <strong>Location:</strong> ${attack.City}, ${attack.Country}
-                        </div>
-                    `;
-                    
-                    marker.bindPopup(popupContent);
+                    if (!seenIPs.has(attack.IP)) {
+                        seenIPs.add(attack.IP);
+                        uniqueMapAttacks.push(attack);
+                    }
                 }
+                // Stop once we have collected 1000 unique locations
+                if (uniqueMapAttacks.length === 1000) break;
+            }
+
+            uniqueMapAttacks.forEach(attack => {
+                const lat = parseFloat(attack.Lat);
+                const lon = parseFloat(attack.Lon);
+                
+                // Assign colors: Red for breach, Cyan for failed attempt
+                const markerColor = attack.Status === 'SUCCESS' ? '#FF4444' : '#00E5FF';
+                
+                // Create a circular glowing marker
+                const marker = L.circleMarker([lat, lon], {
+                    radius: 5,
+                    fillColor: markerColor,
+                    color: markerColor,
+                    weight: 1,
+                    opacity: 0.8,
+                    fillOpacity: 0.5
+                }).addTo(map);
+                
+                // Build the popup content
+                const popupContent = `
+                    <div style="font-family: 'Inter', sans-serif; color: #12151A; line-height: 1.5;">
+                        <strong style="color: ${markerColor};">${attack.Status}</strong><br>
+                        <strong>IP:</strong> ${attack.IP}<br>
+                        <strong>User:</strong> ${attack.Username}<br>
+                        <strong>Password:</strong> ${attack.Password}<br>
+                        <strong>Location:</strong> ${attack.City}, ${attack.Country}
+                    </div>
+                `;
+                
+                marker.bindPopup(popupContent);
             });
         }
 
