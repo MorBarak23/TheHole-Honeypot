@@ -18,17 +18,21 @@ This project was developed as a hands-on cybersecurity and DevSecOps portfolio p
 
 **[View the Live Global Threat Monitor Here](https://MorBarak23.github.io/TheHole-Honeypot/)**
 
-_(Note: Data is updated dynamically based on real-time attacks hitting the AWS server)._
+_(Note: During the research time, the data is updated dynamically based on real-time attacks hitting the AWS server between the dates 31/05/2026 - 29/08/2026 )._
 
 ---
 
-## 📸 Dashboard & Analytics
+### 📸 Dashboard & Analytics
 
-\*💡 **Screenshot Recommendation 1: The Global Map\***  
-`[Insert a screenshot here showing the dark-themed CartoDB map filled with attack markers]`
+**Global Threat Map & Web Dashboard**  
+_Visualizing the geographic distribution of automated brute-force attacks and common data._  
+![Global Threat Map & Dashboard](ScreenShots/Global-Map-n-Dashboard.png)
 
-\*💡 **Screenshot Recommendation 2: Top Passwords & Recent Attacks\***  
-`[Insert a screenshot here focusing on the left/right sidebars showing the Top 10 Passwords and the live stream of recent IPs/Usernames]`
+<br>
+
+**Last 500 Attacks**  
+_Data breakdown of the last 500 attempted attacks (we can see that the last 500+ was a brute force attack from one USA domain)._  
+![Last 500](ScreenShots/TOP500.png)
 
 ---
 
@@ -49,8 +53,9 @@ The system operates as a continuous, automated pipeline:
 6. **Frontend Visualization:**
    The web dashboard consumes the latest CSV data and renders it onto an interactive Leaflet.js map, applying a custom dark theme.
 
-\*💡 **Screenshot Recommendation 3: Terminal Output\***  
-`[Insert a screenshot here showing the terminal running the Python script, successfully extracting IPs and resolving locations (e.g., Exported to CSV: 218.13... (China))]`
+**Automated Data Pipeline**  
+_Python extraction engine resolving attacker IP addresses in real-time._  
+![Terminal Output](ScreenShots/Data-Pipeline.png)
 
 ---
 
@@ -63,19 +68,9 @@ The system operates as a continuous, automated pipeline:
 
 ---
 
-## 🔍 Key Findings & Security Insights
-
-By analyzing the gathered data, several cybersecurity trends become immediately clear:
-
-1. **Automated Botnets:** The vast majority of attacks occur in rapid bursts (e.g., 30+ requests from a single Chinese IP within seconds), indicating scripted brute-force dictionary attacks rather than human hackers.
-2. **Default Credential Stuffing:** The most frequently attempted usernames (`root`, `admin`, `support`) and passwords (`123456`, `admin`) highlight the critical danger of leaving default credentials on IoT devices and servers.
-3. **Global Distribution:** Attacks originate from a wide array of global nodes, emphasizing that threats are highly distributed and borderless.
-
----
-
 ### 📊 Final Research Findings (3-Month Data Collection)
 
-Over a structured 90-day data collection period, the honeypot successfully captured and analyzed **over 50,000 distinct unauthorized access attempts**.
+Over a structured 90-day data collection period, the honeypot successfully captured and analyzed **over 79,000 distinct unauthorized access attempts**.
 
 **Core Discoveries:**
 
