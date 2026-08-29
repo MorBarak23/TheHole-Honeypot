@@ -32,7 +32,7 @@ _Visualizing the geographic distribution of automated brute-force attacks and co
 
 **Last 500 Attacks**  
 _Data breakdown of the last 500 attempted attacks (we can see that the last 500+ was a brute force attack from one USA domain)._  
-![Last 500](ScreenShots/TOP500.png)
+![Last 500](ScreenShots/Top500.png)
 
 ---
 
